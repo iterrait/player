@@ -1,0 +1,38 @@
+@if (currentMedia()) {
+  @if (!isOnline()) {
+  <div class="no-home-connect">
+    <div>Отсутствует соединение</div>
+  </div>
+  }
+
+  @switch (currentMedia()?.type) {
+    @case ('stream') {
+      <hls-media-object [currentMedia]="currentMedia()" />
+    }
+    @case ('newspaper') {
+       <newspaper-media-object
+          [currentMedia]="currentMedia()"
+          [playerId]="player()!.id"
+          [isStartOver]="isStartOver()"
+          [isInit]="isInit()"
+       />
+    }
+    @case ('image') {
+      <single-image-media-object [currentMedia]="currentMedia()" />
+    }
+    @case ('video') {
+      <single-video-media-object
+        [currentMedia]="currentMedia()"
+        (videoDurationChanged)="changeDurationMediaObject($event)"
+      />
+    }
+  }
+} @else {
+  <div class="sleep-block">
+    @if (!isOnline()) {
+      <div class="no-home-connect">
+        <div>Отсутствует соединение</div>
+      </div>
+    }
+  </div>
+}

@@ -1,0 +1,165 @@
+html {
+  height: 100%;
+}
+
+html, body {
+  scrollbar-width: thin;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  color: var(--color-main);
+  font-size: var(--font-size-x6);
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: contain;
+  user-select: none;
+  background-color: var(--color-body-background);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+  background-color: var(--color-tone_content_1);
+  border-radius: 9em;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+}
+
+a {
+  font-size: var(--font-size-x4);
+  font-weight: 600;
+  color: var(--color-primary);
+  outline: none;
+  cursor: pointer;
+}
+
+a.default-link {
+  text-decoration: none;
+}
+
+.detail-link {
+  padding-top: var(--gap-x4);
+  font-size: 16px;
+  font-weight: 700;
+  color: #656A74;
+  text-transform: uppercase;
+}
+
+p {
+  margin-top: var(--gap-x4);
+  margin-bottom: var(--gap-x4);
+}
+
+.hidden {
+  display: none;
+}
+
+.iterra-auth {
+  height: 100%;
+  max-width: 768px;
+  margin: 0 auto;
+  padding: var(--gap-x4);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  > * {
+    width: 100%;
+  }
+
+  input {
+    border-radius: var(--border-radius-x2) !important;
+  }
+}
+
+.logo {
+  width: 128px;
+}
+
+it-select {
+  padding-bottom: var(--gap-x2);
+}
+
+.status-positive {
+  color: var(--color-positive);
+
+  svg {
+    stroke: var(--color-positive);
+  }
+}
+
+.status-negative {
+  color: var(--color-negative);
+
+  svg {
+    stroke: var(--color-negative);
+  }
+}
+
+.status-warning {
+  color: var(--color-warning);
+
+  svg {
+    stroke: var(--color-warning);
+  }
+}
+
+.status-neutral {
+  color: var(--color-neutral);
+
+  svg {
+    stroke: var(--color-neutral);
+  }
+}
+
+.link {
+  color: var(--color-main);
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--gap-x3) 0;
+}
+
+.page__subtitle {
+  padding: var(--gap-x3) 0;
+}
+
+.info-block {
+  display: flex;
+  gap: var(--gap-x2);
+}
+
+.info-block__title {
+  font-weight: 600;
+}
+
+.info-block__value {
+  color: var(--color-description);
+}

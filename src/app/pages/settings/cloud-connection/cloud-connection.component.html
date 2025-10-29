@@ -1,0 +1,25 @@
+<form class="cloud-connection">
+  <div>Введите код из личного кабинета</div>
+  <div class="cloud-connection__inputs">
+    @for (item of [].constructor(inputCounts); track $index) {
+      <input
+        #codeInput
+        type="text"
+        class="cloud-connection__input"
+        maxlength="1"
+        type="text"
+        autocomplete="one-time-code"
+        (paste)="onPaste($event, $index)"
+        (input)="onInput($event, $index)"
+      >
+    }
+  </div>
+  <it-button
+    buttonStyle="primary"
+    buttonType="button"
+    [disabled]="!checkAccessSubmit || isLoading()"
+    (clicked)="onSubmitClick()"
+  >
+    Привязать плеер
+  </it-button>
+</form>

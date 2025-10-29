@@ -1,0 +1,39 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  .cloud-connection {
+    width: 500px;
+    padding: var(--gap-x3);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cloud-connection__inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding-top: var(--gap-x3);
+    padding-bottom: var(--gap-x3);
+  }
+
+  .cloud-connection input {
+    border: none;
+    background-color: var(--color-section);
+    color: white;
+    font-size: 32px;
+    text-align: center;
+    padding: 10px;
+    width: 100%;
+    max-width: 70px;
+    height: 70px;
+    border-radius: 4px;
+  }
+
+  .cloud-connection input:focus-visible {
+    outline: 2px solid var(--color-positive);
+  }
+}

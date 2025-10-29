@@ -1,0 +1,26 @@
+<div
+  class="background-overlay"
+  [style.width.px]="params().backgroundWidth || 0"
+  [style.height.px]="params().backgroundHeight || 0"
+  [style.top.px]="params().backgroundTop || 0"
+  [style.left.px]="params().backgroundLeft || 0"
+  [style.z-index]="params().backgroundLayer && params().backgroundLayer === 'front' ? '3' : '-1'">
+  @if (params().backgroundType === 'video' && params().backgroundAnimationFile?.minioUrl) {
+    <video
+      loading="eager"
+      autoplay
+      muted
+      loop
+      [src]="params().backgroundAnimationFile!.minioUrl!"
+    >
+    </video>
+  }
+
+  @if (params().backgroundType === 'image' && params().backgroundAnimationFile?.minioUrl) {
+    <img
+      loading="eager"
+      decoding="async"
+      [src]="params().backgroundAnimationFile!.minioUrl!"
+    />
+  }
+</div>

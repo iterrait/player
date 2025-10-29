@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+      "outDir": "./lib/",
+      "rootDir": "./app/",
+      "module": "commonjs",
+      "target": "ESNext",
+      "noImplicitAny": false,
+      "sourceMap": false,
+      "declaration": false,
+      "skipLibCheck": true,
+      "lib": [
+        "ES2022",
+        "dom"
+      ],
+      "types": [
+        "node",
+        "electron"
+      ]
+    },
+    "include": [
+      "./app/**/*"
+    ],
+    "exclude": [
+      "src/**/*"
+    ]
+}

@@ -1,0 +1,48 @@
+<canvas #postCanvas class="post-background"></canvas>
+
+@if (config()) {
+  @if (config().backgroundType === 'animation') {
+    <animation-background
+      [localBasePath]="localBasePath()"
+      [params]="config()"
+    />
+  } @else {
+    <simple-background
+      [localBasePath]="localBasePath()"
+      [params]="config()"
+    />
+  }
+
+  <div class="wrapper-post"
+    [style.width.px]="config().width ?? 0"
+    [style.height.px]="config().height ?? 0"
+    [style.top.px]="config().top  ?? 0"
+    [style.left.px]="config().left ?? 0"
+  >
+
+    <img
+      #postImage
+      class="post-image"
+      [src]="imagePath() | async"
+      [class.fit_into_screen]="config().fitIntoScreen || false"
+      (load)="onLoadPostImage()"
+    />
+
+  @if (config().hasMarquee && isStartOver()) {
+    <div
+      #marqueeContainer
+      class="marquee marquee__photo"
+      [style.height.px]="config().marqueeHeight ?? defaultMarqueeHeight"
+    >
+      <div
+        #marqueeTextContainer
+        class="marquee-text marquee-text__animation"
+        [style.animationDuration.s]="marqueeSpeed"
+        [style.fontSize.px]="marqueeFontSize"
+      >
+        {{marqueeText}}
+      </div>
+    </div>
+  }
+  </div>
+}

@@ -1,0 +1,10 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-x2);
+  padding: var(--gap-x3);
+
+  .empty-player {
+    padding: var(--gap-x3);
+  }
+}

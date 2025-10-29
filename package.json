@@ -1,0 +1,106 @@
+{
+  "name": "player",
+  "version": "3.0.0",
+  "scripts": {
+    "angular:ng": "ng",
+    "angular:start": "ng serve --live-reload --host 0.0.0.0 --ssl",
+    "angular:build": "ng build --base-href ./ --output-path ./dist/player",
+    "angular:watch": "ng build --watch --configuration development",
+    "start:electron": "ng build --base-href ./ && electron .",
+    "electron:tsc": "tsc -p ./tsconfig.electron.json",
+    "electron:start": "npm run electron:tsc && electron --trace-warnings .",
+    "electron:build": "npm run electron:tsc && electron-builder --win --linux --x64",
+    "electron:build:linux": "npm run electron:tsc && electron-builder --linux --publish never",
+    "electron:build:win": "npm run electron:tsc && electron-builder --win --publish never",
+    "start": "cross-env NODE_ENV=development npm-run-all --parallel angular:start electron:start",
+    "start:tools": "cross-env NODE_ENV=development DEV_TOOLS=true npm-run-all --parallel angular:start electron:start",
+    "start:prod": "npm run angular:build && cross-env NODE_ENV=production npm run electron:start",
+    "start:prod:tools": "npm run angular:build && cross-env NODE_ENV=production DEV_TOOLS=true npm run electron:start",
+    "build": "npm run angular:build && npm run electron:build",
+    "build:linux": "npm run angular:build && npm run electron:build:linux",
+    "build:win": "npm run angular:build && npm run electron:build:win"
+  },
+  "main": "lib/app.js",
+  "private": true,
+  "nsis": {
+    "deleteAppDataOnUninstall": true
+  },
+  "build": {
+    "appId": "player",
+    "productName": "Player",
+    "files": [
+      "dist/player/**/*",
+      "node_modules/**/*",
+      "public/**/*",
+      "lib/**/*",
+      "package.json"
+    ],
+    "deb": {},
+    "asar": false,
+    "directories": {
+      "output": "dist/player"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "public/favicon.ico",
+      "uninstallerIcon": "public/favicon.ico",
+      "installerHeaderIcon": "public/favicon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Iterra Player",
+      "differentialPackage": false,
+      "deleteAppDataOnUninstall": true
+    },
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "icon": "public/favicon.ico"
+    }
+  },
+  "dependencies": {
+    "@angular/animations": "^19.0.3",
+    "@angular/common": "^19.0.3",
+    "@angular/compiler": "^19.0.3",
+    "@angular/core": "^19.0.3",
+    "@angular/forms": "^19.0.3",
+    "@angular/material": "^19.2.19",
+    "@angular/platform-browser": "^19.0.3",
+    "@angular/platform-browser-dynamic": "^19.0.3",
+    "@angular/router": "^19.0.3",
+    "@iterra/app-lib": "0.2.15",
+    "angular-imask": "^7.6.1",
+    "axios": "^1.12.2",
+    "crypto-js": "^4.2.0",
+    "electron-store": "^11.0.2",
+    "electron-updater": "^6.6.2",
+    "hls.js": "^1.6.13",
+    "ngx-image-compress": "^15.1.6",
+    "ngx-toastr": "^19.0.0",
+    "node-schedule": "^2.1.1",
+    "rxjs": "~7.8.1",
+    "systeminformation": "^5.27.11",
+    "tslib": "^2.8.1",
+    "zone.js": "~0.15.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^19.0.4",
+    "@angular/cli": "^19.0.4",
+    "@angular/compiler-cli": "^19.0.3",
+    "@types/jasmine": "~5.1.5",
+    "cross-env": "^7.0.3",
+    "electron": "^38.1.2",
+    "electron-builder": "^25.1.8",
+    "jasmine-core": "~5.5.0",
+    "karma": "~6.4.4",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.1",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "~5.6.3"
+  }
+}

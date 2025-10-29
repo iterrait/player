@@ -1,0 +1,9 @@
+<video
+  #singleVideo
+  autoplay
+  muted
+  loop
+  class="full-wide-object"
+  [src]="media() | async"
+  (loadedmetadata)="loadedSingleData(singleVideo)">
+</video>
