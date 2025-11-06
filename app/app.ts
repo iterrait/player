@@ -182,8 +182,12 @@ function setSchedule() {
 }
 
 function checkForUpdate() {
-  sendScreenshot('updated');
   autoUpdater.checkForUpdates().catch();
+
+  autoUpdater.on('update-downloaded', () => {
+    sendScreenshot('updated');
+    autoUpdater.quitAndInstall();
+  });
 }
 
 function getScheduleRule(dateAt) {
