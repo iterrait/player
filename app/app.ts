@@ -156,6 +156,7 @@ function setSchedule() {
   const ruleEnd = getScheduleRule(endAt);
 
   if (currentTime >= startAt.getTime() && currentTime < endAt.getTime()) {
+    checkForUpdate();
     setTimeout(() => sendScreenshot('running'), 1000);
     mainWindow.webContents.send('playerStart');
   } else {
