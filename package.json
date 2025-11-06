@@ -1,6 +1,6 @@
 {
   "name": "player",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "scripts": {
     "angular:ng": "ng",
     "angular:start": "ng serve --live-reload --host 0.0.0.0 --ssl",
@@ -23,9 +23,6 @@
   },
   "main": "lib/app.js",
   "private": true,
-  "nsis": {
-    "deleteAppDataOnUninstall": true
-  },
   "build": {
     "appId": "iterrait/player",
     "productName": "Iterra Player",
@@ -52,7 +49,8 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Iterra Player",
       "differentialPackage": false,
-      "deleteAppDataOnUninstall": true
+      "deleteAppDataOnUninstall": true,
+      "runAfterFinish": true
     },
     "win": {
       "target": [
