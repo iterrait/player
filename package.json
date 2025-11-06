@@ -1,6 +1,6 @@
 {
   "name": "player",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "scripts": {
     "angular:ng": "ng",
     "angular:start": "ng serve --live-reload --host 0.0.0.0 --ssl",
@@ -12,6 +12,7 @@
     "electron:build": "npm run electron:tsc && electron-builder --win --linux --x64",
     "electron:build:linux": "npm run electron:tsc && electron-builder --linux --publish never",
     "electron:build:win": "npm run electron:tsc && electron-builder --win --publish never",
+    "electron:build:win:publish": "npm run electron:tsc && electron-builder --win --publish always",
     "start": "cross-env NODE_ENV=development npm-run-all --parallel angular:start electron:start",
     "start:tools": "cross-env NODE_ENV=development DEV_TOOLS=true npm-run-all --parallel angular:start electron:start",
     "start:prod": "npm run angular:build && cross-env NODE_ENV=production npm run electron:start",
@@ -26,8 +27,8 @@
     "deleteAppDataOnUninstall": true
   },
   "build": {
-    "appId": "player",
-    "productName": "Player",
+    "appId": "iterrait/player",
+    "productName": "Iterra Player",
     "files": [
       "dist/player/**/*",
       "node_modules/**/*",
