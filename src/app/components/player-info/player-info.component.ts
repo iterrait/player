@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { filter, finalize, from, switchMap } from 'rxjs';
@@ -14,7 +13,6 @@ import { Player } from '$types/player.types';
   selector: 'player-info',
   standalone: true,
   imports: [
-    DatePipe,
     NotEmptyPipe,
   ],
   templateUrl: './player-info.component.html',
@@ -39,7 +37,7 @@ export class PlayerInfoComponent extends BaseComponent {
   private getPlayerInfo(): void {
     this.isLoading.set(true);
 
-    from(this.electronService.ipcRenderer.invoke('getPLayerId'))
+    from(this.electronService.ipcRenderer.invoke('getPlayerId'))
       .pipe(
         filter((playerId) => !!playerId),
         switchMap((playerId) => this.playerApiService.getPLayerInfo(playerId)),

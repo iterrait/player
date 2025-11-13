@@ -5,9 +5,12 @@ import {
 
 interface Params {
   window: BrowserWindow;
+  mainWindow?: BrowserWindow;
   title: string;
   icon: string;
   path: string;
+  width?: number;
+  height?: number;
 }
 
 export default class MenuBuilder {
@@ -97,9 +100,9 @@ export default class MenuBuilder {
 
   createModalWindow(params: Params) {
     params.window = new BrowserWindow({
-      width: 700,
-      height: 700,
-      parent: this.mainWindow,
+      width: params?.width ?? 700,
+      height: params?.width ?? 700,
+      parent: params?.mainWindow ?? this.mainWindow,
       title: params.title,
       modal: true,
       icon: params.icon,

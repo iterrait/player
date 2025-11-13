@@ -13,7 +13,9 @@ const schedule = require('node-schedule');
 
 let aboutWindow,
     configWindow,
+    linkDescriptionWindow,
     mainWindow,
+    menuBuilder,
     playerStore,
     electronService;
 
@@ -40,7 +42,7 @@ app.on('ready', async () => {
 
   initServices();
   initMedia();
-  initPLayerStore();
+  initPlayerStore();
   checkAccess();
 
   if (!(process.env['NODE_ENV'] || '').startsWith('dev')) {
@@ -78,7 +80,21 @@ function checkMainWindow(baseUrl) {
       mainWindow.webContents.send('getPlayerInfo', playerStore.get('playerId'))
     }, 1000);
     mainWindow.show();
-  })
+    openLinkDescriptionModal();
+  });
+}
+
+function openLinkDescriptionModal() {
+  const params = {
+    window: linkDescriptionWindow,
+    title: 'Информация о плеере',
+    icon: './build/icon.ico',
+    path: 'link-description',
+    width: 700,
+    height: 700,
+  };
+  menuBuilder.createModalWindow(params);
+  linkDescriptionWindow = params.window;
 }
 
 function checkAccess() {
@@ -109,23 +125,33 @@ function initMedia() {
   });
 }
 
-function initPLayerStore() {
+function initPlayerStore() {
   playerStore = new PlayerStore({
     configName: 'user-preferences',
     defaults: {},
   });
 
-  ipcMain.handle('getPLayerId', async () => {
+  ipcMain.handle('getPlayerId', async () => {
     return playerStore.get('playerId');
   });
 
-  ipcMain.addListener('setPlayerData', async (event, player) => {
-    playerStore.set('playerId', player.id);
-    playerStore.set('startAt', player.startAt);
-    playerStore.set('endAt', player.endAt);
-    playerStore.set('domain', player.project.domain);
+  ipcMain.handle('getIsPlayerLinked', async () => {
+    return playerStore.get('isPlayerLinked');
+  });
 
-    setSchedule();
+  ipcMain.addListener('setPlayerData', async (event, player) => {
+    setPlayerStoreData(player);
+  });
+
+  ipcMain.addListener('closeLinkDescriptionModal', async () => {
+    if (linkDescriptionWindow) {
+      linkDescriptionWindow.close();
+    }
+  });
+
+  ipcMain.addListener('setPlayerDataWithReload', async (event, player) => {
+    setPlayerStoreData(player);
+    reloadApp();
   });
 
   ipcMain.addListener('setStatus', async (event, status) => {
@@ -133,29 +159,46 @@ function initPLayerStore() {
   });
 }
 
+function setPlayerStoreData(player): void {
+  playerStore.set('playerId', player.id);
+  playerStore.set('startTime', player.startTime);
+  playerStore.set('endTime', player.endTime);
+  playerStore.set('screenResolution', player.screenResolution);
+
+  if (player.hasOwnProperty('isPlayerLinked')) {
+    playerStore.set('isPlayerLinked', !!player?.isPlayerLinked);
+  }
+
+  if (player?.project?.domain) {
+    playerStore.set('domain', player.project.domain);
+  }
+
+  setSchedule();
+}
+
 function setSchedule() {
-  if (!playerStore.get('playerId') || !playerStore.get('startAt') || !playerStore.get('endAt')) {
+  if (!playerStore.get('playerId') || !playerStore.get('startTime') || !playerStore.get('endTime')) {
     mainWindow.webContents.send('playerInfo');
     return;
   }
 
   const currentDate = new Date();
 
-  const startAtSettings = new Date(playerStore.get('startAt'));
-  const startAt = new Date();
-  startAt.setHours(startAtSettings.getHours());
-  startAt.setMinutes(startAtSettings.getMinutes());
+  const startTimeSettings = playerStore.get('startTime').split(':');
+  const startTime = new Date();
+  startTime.setHours(startTimeSettings[0]);
+  startTime.setMinutes(startTimeSettings[1]);
 
-  const endAtSettings = new Date(playerStore.get('endAt'));
-  const endAt = new Date();
-  endAt.setHours(endAtSettings.getHours());
-  endAt.setMinutes(endAtSettings.getMinutes());
+  const endTimeSettings = playerStore.get('endTime').split(':');
+  const endTime = new Date();
+  endTime.setHours(endTimeSettings[0]);
+  endTime.setMinutes(endTimeSettings[1]);
 
   const currentTime = currentDate.getTime();
-  const ruleStart = getScheduleRule(startAt);
-  const ruleEnd = getScheduleRule(endAt);
+  const ruleStart = getScheduleRule(startTime);
+  const ruleEnd = getScheduleRule(endTime);
 
-  if (currentTime >= startAt.getTime() && currentTime < endAt.getTime()) {
+  if (currentTime >= startTime.getTime() && currentTime < endTime.getTime()) {
     checkForUpdate();
     setTimeout(() => sendScreenshot('running'), 1000);
     mainWindow.webContents.send('playerStart');
@@ -198,25 +241,41 @@ function getScheduleRule(dateAt) {
   return rule;
 }
 
+function reloadApp(): void {
+  app.quit();
+  app.exit();
+  app.relaunch();
+}
+
 function createWindow(baseUrl) {
-  mainWindow = new BrowserWindow({
+  const screenResolution = playerStore.get('screenResolution') ?? null;
+
+  const params: Record<string, any> = {
     center: true,
-    width: 1500,
-    height: 1800,
     autoHideMenuBar: true,
-    fullscreen: true,
     type: 'toolbar',
+    frame: 0,
     alwaysOnTop: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
       nodeIntegrationInWorker: true,
     }
-  });
+  };
 
+  if (screenResolution?.length) {
+    const screen = screenResolution.split(':');
+
+    params.width = Number(screen[0]);
+    params.height = Number(screen[1]);
+  } else {
+    params.fullscreen = true;
+  }
+
+  mainWindow = new BrowserWindow(params);
   mainWindow.loadURL(baseUrl);
 
-  const menuBuilder = new MenuBuilder(aboutWindow, configWindow, mainWindow, baseUrl);
+  menuBuilder = new MenuBuilder(aboutWindow, configWindow, mainWindow, baseUrl);
   menuBuilder.buildMenu();
 }
 

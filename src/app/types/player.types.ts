@@ -21,8 +21,10 @@ export interface Player {
     id: string;
     name: string;
   },
-  startAt: string;
-  endAt: string;
+  startTime: string;
+  endTime: string;
+  screenResolution?: string | null;
+  isPlayerLinked?: boolean;
 }
 
 export interface PlayerStatus {

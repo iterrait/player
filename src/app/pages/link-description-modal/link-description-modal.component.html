@@ -1,0 +1,17 @@
+@if (isLinkedPlayer() | async) {
+  <div class="linked-title">Плеер привязан</div>
+  <p>Закройте модальное окно или <br />
+  оно будет автоматически закрыто через</p>
+  <countdown [config]="config" (event)="handleEvent($event)" />
+} @else {
+  <div class="linked-title">Плеер не привязан</div>
+  <p>Для привязки плеера перейдите в раздел<br />
+    <a
+      href="javascript:void(0)"
+      (click)="goToSettings()"
+    >
+      "Параметры-Облачные настройки"
+    </a>
+  </p>
+  <p>или на главном экране нажмите кнопку Alt</p>
+}

@@ -13,11 +13,15 @@
   </div>
   <div class="info-block">
     <div class="info-block__title">Начало работы плеера:</div>
-    <div class="info-block__value">{{player()!.startAt | date: 'HH:mm' | notEmpty}}</div>
+    <div class="info-block__value">{{player()!.startTime | notEmpty}}</div>
   </div>
   <div class="info-block">
     <div class="info-block__title">Окончание работы плеера:</div>
-    <div class="info-block__value">{{player()!.endAt | date: 'HH:mm' | notEmpty}}</div>
+    <div class="info-block__value">{{player()!.endTime | notEmpty}}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-block__title">Разрешение:</div>
+    <div class="info-block__value">{{player()!.screenResolution | notEmpty}}</div>
   </div>
   <div class="info-block">
     <div class="info-block__title">Адрес:</div>

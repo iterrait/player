@@ -1,0 +1,21 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  .linked-title {
+    margin-bottom: var(--gap-x3);
+    font-size: var(--font-size-x8);
+    font-weight: 600;
+  }
+
+  p {
+    font-size: var(--font-size-x4);
+    margin-top: var(--gap-x2);
+    margin-bottom: var(--gap-x2);
+  }
+}

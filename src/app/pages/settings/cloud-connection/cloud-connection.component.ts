@@ -122,7 +122,10 @@ export class CloudConnectionComponent extends BaseComponent {
       .subscribe({
         next: (player) => {
           this.setInputValues([], 0);
-          this.electronService.ipcRenderer.send('setPlayerData', player);
+          this.electronService.ipcRenderer.send(
+            'setPlayerDataWithReload',
+            { ...player, isPlayerLinked: true },
+          );
           this.deviceLinked.emit();
           this.toastrService.success('Плеер успешно привязан');
         },
