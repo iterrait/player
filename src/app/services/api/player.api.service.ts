@@ -18,7 +18,7 @@ export class PlayerApiService extends ApiBaseService {
   protected domainApi = computed(() => `https://player.${this.adminService.domain()}/v1`);
 
   public getPLayerInfo(playerId: string): Observable<Player> {
-    this.API = signal(`https://player.iterra.space/v1`);
+    this.API = signal(`https://player.iterra.world/v1`);
     return this.getEntity<Player>(`players/${playerId}`);
   }
 

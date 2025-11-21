@@ -82,16 +82,13 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
   });
 
   protected imagePath = computed(() => {
-    const blocks = this.currentPost()?.post.content.data.blocks ?? [];
+    const mediaList = this.currentPost()?.post.mediaList ?? [];
 
-    if (!blocks.length) {
+    if (!mediaList.length) {
       return null;
     }
 
-    const block = blocks.find((item: Record<string, any>) => item['type'] === 'carousel');
-    const file = block?.data?.['carousel']?.[0];
-
-    return this.downloadService.getFile(file);
+    return this.downloadService.getFile(mediaList[0]);
   });
 
   constructor() {``

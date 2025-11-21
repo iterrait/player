@@ -4,6 +4,6 @@ import { Injectable, signal } from '@angular/core';
   providedIn: 'root',
 })
 export class AdminService {
-  public domain = signal('iterra.space');
+  public domain = signal('iterra.world');
   public projectSysname = signal('iterra');
 }

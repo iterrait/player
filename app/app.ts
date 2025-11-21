@@ -322,7 +322,7 @@ function sendScreenshot(status) {
     form.append('file', dataURItoBlob(file), 'screen.jpg');
     form.append('data', JSON.stringify({
       status,
-      'status_at': new Date().toISOString(),
+      'status_at': new Date().toUTCString(),
     }));
 
     try {

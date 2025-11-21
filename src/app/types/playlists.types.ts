@@ -1,3 +1,4 @@
+import { File } from '$types/files.types';
 import { MediaObject } from '$types/media-objects.types';
 
 export interface Playlist {
@@ -45,6 +46,7 @@ export interface NewspaperPost {
       id: string;
       name: string;
     };
+    mediaList: File[] | null;
     createdAt: string;
     updatedAt: string;
   };

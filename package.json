@@ -1,6 +1,6 @@
 {
   "name": "player",
-  "version": "3.0.7",
+  "version": "3.0.14",
   "scripts": {
     "angular:ng": "ng",
     "angular:start": "ng serve --live-reload --host 0.0.0.0 --ssl",
