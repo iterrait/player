@@ -19,11 +19,9 @@ import { BaseComponent } from '@iterra/app-lib/directives';
 
 import { AnimationBackgroundComponent } from '$components/animation-background/animation-background.component';
 import { NewspaperMediaObjectService } from '$components/media-objects/newspaper-media-object/newspaper-media-object.service';
-import { SimpleBackgroundComponent } from '$components/simple-background/simple-background.component';
 import { PlayerApiService } from '$services/api/player.api.service';
 import { DownloadService } from '$services/download.service';
 import { ElectronService } from '$services/electron.service';
-import { File } from '$types/files.types';
 import { MediaObject, NewspaperMediaObjectParams } from '$types/media-objects.types';
 import { NewspaperPost } from '$types/playlists.types';
 
@@ -33,7 +31,6 @@ import { NewspaperPost } from '$types/playlists.types';
   imports: [
     AsyncPipe,
     AnimationBackgroundComponent,
-    SimpleBackgroundComponent,
   ],
   templateUrl: './newspaper-media-object.component.html',
   styleUrls: ['./newspaper-media-object.component.scss'],
@@ -91,6 +88,8 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
     return this.downloadService.getFile(mediaList[0]);
   });
 
+  protected marqueeWidth = signal<number>(0);
+
   constructor() {``
     super();
 
@@ -98,6 +97,9 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
     this.windowWidth = window.innerWidth;
 
     effect(() => {
+      const marqueeWidth = this.windowWidth - Number(this.currentMedia()?.config['backgroundWidth']);
+      this.marqueeWidth.set(marqueeWidth);
+
       if (this.currentMedia()) {
         if (this.playerId() && this.isStartOver()) {
           this.getNewspaperPosts();
@@ -173,14 +175,14 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
   }
 
   private addMarquee():void{
-    if (!this.config().width || !this.marqueeTextContainer()!.nativeElement) return;
+    if (!this.marqueeTextContainer()!.nativeElement) return;
 
     this.marqueeFontSize = (this.config().marqueeHeight ?? 0) * 0.8;
     this.marqueeText = this.textBlock()?.data['text'] ?? '';
 
     this.changeDetectorRef.detectChanges();
     // получаем ширину за вычетом padding-left: 100%
-    const width = this.marqueeTextContainer()!.nativeElement.clientWidth - this.config()!.width!;
+    const width = this.marqueeTextContainer()!.nativeElement.clientWidth!;
     let percent = 1;
 
     if (width > 3000) {
@@ -220,15 +222,16 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
         tap((postsWithPaginator) => this.posts.set(postsWithPaginator.data)),
         tap(() => {
           const mediaList = this.posts().reduce((acc: Record<string, any>[], curr) => {
-            const carousels = curr.post.content.data.blocks
-              .filter((item) => item.type === 'carousel')
-              .map((item) => item.data['carousel']);
-            const file = carousels[0][0] as File;
-            acc.push({
-              mediaUrl: file.minioUrl,
-              fileName: file.id,
-              type: file.mimeType.split('/')[1],
-            });
+            const file = curr.post.mediaList?.[0] ?? null;
+
+            if (file) {
+              acc.push({
+                minioUrl: file.minioUrl,
+                fileName: file.id,
+                type: file.mimeType.split('/')[1],
+              });
+            }
+
             return acc;
           }, []);
 

@@ -70,6 +70,19 @@ app.on('ready', async () => {
   globalShortcut.register('Escape', function () {
     app.quit();
   });
+
+  globalShortcut.register('Alt+E', () => {
+    const params = {
+      window: linkDescriptionWindow,
+      title: 'Информация о плеере',
+      icon: './build/icon.ico',
+      path: 'settings',
+      width: 700,
+      height: 700,
+    };
+    menuBuilder.createModalWindow(params);
+    linkDescriptionWindow = params.window;
+  })
 });
 
 function checkMainWindow(baseUrl) {
@@ -121,6 +134,7 @@ function initMedia() {
   const mediaBuilder = new MediaBuilder;
 
   ipcMain.addListener('downloadMedia', async (event, data) => {
+    console.log('data', data);
     await mediaBuilder.downloadBulkMedia(data.mediaList)
   });
 }

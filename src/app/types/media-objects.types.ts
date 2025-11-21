@@ -39,25 +39,9 @@ export interface NewspaperMediaObjectParams {
   widgetId: string | null;
   postTimeSec: number | null;
   limit: number | null;
-  theme: string | null;
-  left: number | null;
-  top: number | null;
-  width: number | null;
-  height: number | null;
-  backgroundPostWidth?: number | null;
-  backgroundPostHeight?: number | null;
-  fitIntoScreen?: boolean | null;
   hasMarquee?: boolean | null;
   marqueeHeight?: number | null;
   marqueeSpeed?: number | null;
-  backgroundLeft?: number | null;
-  backgroundTop?: number | null;
   backgroundWidth?: number | null;
-  backgroundHeight?: number | null;
-  backgroundLayer?: string | null;
-  backgroundType?: string | null;
-  backgroundAnimationChannel?: string | null;
   backgroundAnimationLogoFile?: File | null;
-  backgroundAnimationFile?: File | null;
-  backgroundAnimationQrFile?: File | null;
 }

@@ -19,7 +19,6 @@ import { AdminService } from '$services/admin.service';
 import { PlayerApiService } from '$services/api/player.api.service';
 import { ElectronService } from '$services/electron.service';
 import { MediaObject } from '$types/media-objects.types';
-import { Player } from '$types/player.types';
 import { Playlist } from '$types/playlists.types';
 
 @Component({
@@ -39,6 +38,7 @@ export class HomeComponent extends BaseComponent {
   private adminService = inject(AdminService);
   private changeDetectorRef = inject(ChangeDetectorRef);
   private electronService = inject(ElectronService);
+  private newspaperMediaObjectService = inject(NewspaperMediaObjectService);
   private playerApiService = inject(PlayerApiService);
   private toastrService = inject(ToastrService);
 
@@ -47,7 +47,7 @@ export class HomeComponent extends BaseComponent {
   protected mediaIndex = signal<number>(0);
   protected mediaObjectTimeoutId: NodeJS.Timeout | null = null;
   protected statusTimeoutId: NodeJS.Timeout | null = null;
-  protected player = signal<Player | null>(null);
+  protected player = this.newspaperMediaObjectService.player;
   protected playlist = signal<Playlist | null>(null);
 
   protected mediaList = computed(() => this.playlist()?.mediaObjects ?? []);
@@ -137,10 +137,14 @@ export class HomeComponent extends BaseComponent {
   }
 
   private getNextShowMediaObject(duration: number): void {
-    setTimeout(() => {
+    this.mediaObjectTimeoutId = setTimeout(() => {
       let index = this.mediaIndex();
       const isLast = (index === this.mediaList().length - 1);
       const nextIndex = isLast ? 0 : ++index;
+
+      if (isLast) {
+        this.updateConfig();
+      }
 
       this.isStartOver.set(isLast);
       this.isInit.set(false);
@@ -148,6 +152,17 @@ export class HomeComponent extends BaseComponent {
 
       this.showMediaObject();
     }, duration * 1000);
+  }
+
+  private updateConfig(): void {
+    const id = this.player()?.id;
+
+    if (!id) return;
+    this.playerApiService.getPlaylist(id)
+      .pipe(this.takeUntilDestroy())
+      .subscribe({
+        next: (playlist) => this.playlist.set(playlist),
+      });
   }
 
   private clearTimeouts(): void {

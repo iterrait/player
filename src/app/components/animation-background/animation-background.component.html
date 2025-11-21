@@ -1,39 +1,38 @@
-<div
-  class="background-overlay"
-  [style.width.px]="params().backgroundWidth || 0"
-  [style.height.px]="params().backgroundHeight || 0"
-  [style.top.px]="params().backgroundTop || 0"
-  [style.left.px]="params().backgroundLeft || 0"
-  [style.z-index]="params().backgroundLayer && params().backgroundLayer === 'front' ? '3' : '-1'">
-  <div class="background-overlay__title-wrapper">
-    <div class="background-overlay__title">Telegram-канал</div>
-    <div
-      #channel
-      [style.fontSize]="fontSize+'px'"
-      class="background-overlay__channel"
-    >
-      <span>&#64;</span>{{params().backgroundAnimationChannel}}
-    </div>
-  </div>
-  <img [src]="backgroundAnimationLogo() | async" class="background-overlay__logo" />
-  <div class="background-overlay__qr-wrapper">
-    <img
-      [src]="backgroundAnimationQrFile() | async"
-      class="background-overlay__qr" />
-  </div>
+<div class="background-overlay__title-wrapper">
   <div
-    class="background-overlay__rubric"
-    [style.height.px]="params().marqueeHeight ?? 65"
+    #channel
+    [style.fontSize]="fontSize+'px'"
+    class="background-overlay__channel"
   >
-    <it-icon
-      name="it-news"
-      color="var(--color-white)"
-      [size]="48"
-    />
-    <div
-      class="background-overlay__rubric-text"
-      [style.fontSize.px]="marqueeFontSize()">
-        новости
+    {{widgetName()}}
+  </div>
+</div>
+
+<img [src]="backgroundAnimationLogo() | async" class="background-overlay__logo" />
+  @if (qrCode()){
+    <div class="background-overlay__qr-wrapper">
+    <qrcode
+      class="background-overlay__qr"
+      [qrdata]="qrCode()!"
+      [width]="qrWidth()"
+      [errorCorrectionLevel]="'M'"
+    >
+    </qrcode>
     </div>
+  }
+
+<div
+  class="background-overlay__rubric"
+  [style.height.px]="params().marqueeHeight ?? 65"
+>
+  <it-icon
+    name="it-news"
+    color="var(--color-white)"
+    [size]="48"
+  />
+  <div
+    class="background-overlay__rubric-text"
+    [style.fontSize.px]="marqueeFontSize()">
+    новости
   </div>
 </div>

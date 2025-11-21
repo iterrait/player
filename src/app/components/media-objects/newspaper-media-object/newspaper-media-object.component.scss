@@ -1,50 +1,13 @@
 :host {
   position: relative;
+  overflow: hidden;
 
   canvas {
-    width: 100vw;
-    height: 100vh;
-  }
-
-  .wrapper-post {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .wrapper-post .post-video__fit-width {
-    max-width: 100%;
-  }
-
-  .post-image {
     position: absolute;
-    height: 100%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1;
-  }
-
-  .post-video {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    height: 100%;
-    object-fit: contain;
-    z-index: 1;
-  }
-
-  .post-image__fit-width {
-    max-width: 100%;
-    height: auto;
-  }
-
-  .post-background {
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    position: absolute;
     filter: blur(30px) brightness(0.5);
     -webkit-filter: blur(30px) brightness(0.5);
     -moz-filter: blur(30px) brightness(0.5);
@@ -52,6 +15,39 @@
     -ms-filter: blur(30px) brightness(0.5);
     transform: scale(1.1);
     z-index: 0;
+  }
+
+  .wrapper-image {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .wrapper-post {
+    display: flex;
+    justify-content: end;
+    position: relative;
+    margin-top: -22px;
+  }
+
+  .post-content {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .post-image {
+    position: relative;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .post-video {
+    position: relative;
+    height: 100%;
+    object-fit: contain;
+    z-index: 1;
   }
 
   .marquee {
@@ -101,12 +97,5 @@
 
   .marquee__photo {
     background: var(--color-marquee);
-  }
-
-  .full-wide-object {
-    height: 100%;
-    width: 100%;
-    object-fit: contain;
-    background-color: var(--color-main);
   }
 }

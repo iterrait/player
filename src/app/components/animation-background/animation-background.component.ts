@@ -11,13 +11,16 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { QRCodeComponent } from 'angularx-qrcode';
 
 import { BaseComponent } from '@iterra/app-lib/directives';
 import { ItIconModule } from '@iterra/app-lib/it-icons';
 
+import { NewspaperMediaObjectService } from '$components/media-objects/newspaper-media-object/newspaper-media-object.service';
 import { ElectronService } from '$services/electron.service';
 import { File } from '$types/files.types';
 import { NewspaperMediaObjectParams } from '$types/media-objects.types';
+import { NewspaperPost } from '$types/playlists.types';
 
 @Component({
   selector: 'animation-background',
@@ -25,21 +28,33 @@ import { NewspaperMediaObjectParams } from '$types/media-objects.types';
   imports: [
     AsyncPipe,
     ItIconModule,
+    QRCodeComponent,
   ],
   templateUrl: './animation-background.component.html',
   styleUrls: ['./animation-background.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[style.width.px]': 'params().backgroundWidth',
+    '[style.min-width.px]': 'params().backgroundWidth'
+  }
 })
 export class AnimationBackgroundComponent extends BaseComponent implements AfterViewInit {
-  public params = input.required<NewspaperMediaObjectParams>();
-  public localBasePath = input.required<string>();
-
   public channel = viewChild<ElementRef<HTMLElement>>('channel');
 
+  public params = input.required<NewspaperMediaObjectParams>();
+  public localBasePath = input.required<string>();
+  public widgetName = input.required<string>();
+  public currentPost = input.required<NewspaperPost | null>();
+
   private electronService = inject(ElectronService);
+  private newspaperMediaObjectService = inject(NewspaperMediaObjectService);
+
+  protected player = this.newspaperMediaObjectService.player;
 
   protected fontSize = signal(56);
   protected marqueeFontSize = signal(24);
+
+  protected qrWidth = computed(() => (this.params().backgroundWidth ?? 256) - 24);
 
   protected backgroundAnimationLogo = computed(() => {
     const file = this.params().backgroundAnimationLogoFile;
@@ -51,14 +66,11 @@ export class AnimationBackgroundComponent extends BaseComponent implements After
     return this.getFile(file);
   });
 
-  protected backgroundAnimationQrFile = computed(() => {
-    const file = this.params().backgroundAnimationQrFile;
+  protected qrCode = computed(() => {
+    const player = this.player();
+    const postId = this.currentPost()?.post.id;
 
-    if (!file) {
-      return null;
-    }
-
-    return this.getFile(file);
+    return `https://app.${player?.project.domain}/${player?.location.id}/widget/${this.params().widgetId}/${postId}`;
   });
 
   constructor() {
@@ -116,13 +128,9 @@ export class AnimationBackgroundComponent extends BaseComponent implements After
       files.push(params.backgroundAnimationLogoFile);
     }
 
-    if (params.backgroundAnimationQrFile) {
-      files.push(params.backgroundAnimationQrFile);
-    }
-
     const mediaList = files.reduce((acc: Record<string, any>[], curr) => {
       acc.push({
-        mediaUrl: curr.minioUrl,
+        minioUrl: curr.minioUrl,
         fileName: curr.id,
         type: curr.mimeType.split('/')[1],
       });
