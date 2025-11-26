@@ -175,7 +175,7 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
   }
 
   private addMarquee():void{
-    if (!this.marqueeTextContainer()!.nativeElement) return;
+    if (!this.marqueeTextContainer()?.nativeElement) return;
 
     this.marqueeFontSize = (this.config().marqueeHeight ?? 0) * 0.8;
     this.marqueeText = this.textBlock()?.data['text'] ?? '';

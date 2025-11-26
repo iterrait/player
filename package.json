@@ -1,14 +1,14 @@
 {
   "name": "player",
-  "version": "3.0.15",
+  "version": "3.0.18",
   "scripts": {
     "angular:ng": "ng",
     "angular:start": "ng serve --live-reload --host 0.0.0.0 --ssl",
     "angular:build": "ng build --base-href ./ --output-path ./dist/player",
     "angular:watch": "ng build --watch --configuration development",
-    "start:electron": "ng build --base-href ./ && electron .",
     "electron:tsc": "tsc -p ./tsconfig.electron.json",
-    "electron:start": "npm run electron:tsc && electron --trace-warnings .",
+    "electron:start": "ng build --base-href ./ && electron .",
+    "electron:start:tsc": "npm run electron:tsc && electron --trace-warnings .",
     "electron:build": "npm run electron:tsc && electron-builder --win --linux --x64",
     "electron:build:linux": "npm run electron:tsc && electron-builder --linux --publish never",
     "electron:build:win": "npm run electron:tsc && electron-builder --win --publish never",

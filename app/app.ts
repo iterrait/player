@@ -18,6 +18,7 @@ let aboutWindow,
     menuBuilder,
     playerStore,
     electronService;
+const gotTheLock = app.requestSingleInstanceLock();
 
 const ALLOWED_DOMAINS = {
   'default-src': `'self' 'unsafe-inline'`,
@@ -26,6 +27,19 @@ const ALLOWED_DOMAINS = {
   'style-src': `'self' 'unsafe-inline' https://fonts.googleapis.com`,
   'font-src': `'self' https://fonts.gstatic.com`,
 };
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.focus();
+    }
+  });
+}
 
 app.on('window-all-closed', () => {
   app.quit();
@@ -134,7 +148,6 @@ function initMedia() {
   const mediaBuilder = new MediaBuilder;
 
   ipcMain.addListener('downloadMedia', async (event, data) => {
-    console.log('data', data);
     await mediaBuilder.downloadBulkMedia(data.mediaList)
   });
 }
