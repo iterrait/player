@@ -17,6 +17,7 @@ import { SingleImageMediaObjectComponent } from '$components/media-objects/singl
 import { SingleVideoMediaObjectComponent } from '$components/media-objects/single-video-media-object/single-video-media-object.component';
 import { AdminService } from '$services/admin.service';
 import { PlayerApiService } from '$services/api/player.api.service';
+import { DayjsService } from '$services/dayjs.service';
 import { ElectronService } from '$services/electron.service';
 import { MediaObject } from '$types/media-objects.types';
 import { Playlist } from '$types/playlists.types';
@@ -37,6 +38,7 @@ import { Playlist } from '$types/playlists.types';
 export class HomeComponent extends BaseComponent {
   private adminService = inject(AdminService);
   private changeDetectorRef = inject(ChangeDetectorRef);
+  private dayjsService = inject(DayjsService);
   private electronService = inject(ElectronService);
   private newspaperMediaObjectService = inject(NewspaperMediaObjectService);
   private playerApiService = inject(PlayerApiService);
@@ -91,7 +93,20 @@ export class HomeComponent extends BaseComponent {
       )
       .subscribe({
         next: (playlist) => {
-          this.playlist.set(playlist);
+          this.playlist.set({
+            ...playlist,
+            mediaObjects: playlist.mediaObjects.filter((item) => {
+              if (!item.startAt || !item.endAt) {
+                return true;
+              }
+              const startAt = this.dayjsService.fromDate(new Date(item.startAt));
+              const endAt = this.dayjsService.fromDate(new Date(item.endAt));
+              const currentDay =  this.dayjsService.now();
+
+              return this.dayjsService.isBetween(currentDay, startAt, endAt);
+            }),
+          });
+
           this.electronService.ipcRenderer.send('setPlayerData', this.player());
         },
         error: (error: ErrorEvent) => {

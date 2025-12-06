@@ -24,7 +24,7 @@ export class PlayerApiService extends ApiBaseService {
 
   public getPlaylist(playerId: string): Observable<Playlist> {
     this.API.set(this.domainApi());
-    return this.getEntity<Playlist>(`playlists/${playerId}`);
+    return this.getEntity<Playlist>(`playlists/${playerId}`, { isShow: true });
   }
 
   public getNewspaperPosts(playerId: string, widgetId: string): Observable<NewspaperPostWithPaginator> {

@@ -54,7 +54,7 @@ export class AnimationBackgroundComponent extends BaseComponent implements After
   protected fontSize = signal(56);
   protected marqueeFontSize = signal(24);
 
-  protected qrWidth = computed(() => (this.params().backgroundWidth ?? 256) - 24);
+  protected qrWidth = computed(() => (this.params().backgroundWidth ?? 256) - 200);
 
   protected backgroundAnimationLogo = computed(() => {
     const file = this.params().backgroundAnimationLogoFile;
@@ -70,7 +70,11 @@ export class AnimationBackgroundComponent extends BaseComponent implements After
     const player = this.player();
     const postId = this.currentPost()?.post.id;
 
-    return `https://app.${player?.project.domain}/${player?.location.id}/widget/${this.params().widgetId}/${postId}`;
+    if (player?.project.domain && player?.location.id && this.params().widgetId && postId) {
+      return `https://app.${player?.project.domain}/${player?.location.id}/widget/${this.params().widgetId}/${postId}`;
+    }
+
+    return null;
   });
 
   constructor() {

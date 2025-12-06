@@ -3,14 +3,12 @@
 
   <div class="wrapper-post">
     <div class="post-content">
-      <div class="wrapper-image">
         <img
           #postImage
           class="post-image"
           [src]="imagePath() | async"
           (load)="onLoadPostImage()"
         />
-      </div>
 
       @if (config().hasMarquee && isStartOver()) {
         <div

@@ -10,6 +10,8 @@ export interface MediaObject {
   duration: number;
   playlistId: string;
   media?: File;
+  startAt: string | null;
+  endAt: string | null;
 }
 
 export interface MediaObjectWithPaginator {
