@@ -15,6 +15,12 @@ export class DownloadService {
     return this.checkFile(file, type) ?? file.minioUrl;
   }
 
+  public checkMediaByName(fileName: string, link: string): Promise<string | null> {
+    return this.checkMediaById(fileName).then((result) => {
+      return !!result ? result as string : link;
+    });
+  }
+
   private checkFile(file: File, type: FileType = 'image'): Promise<string | null> {
     const name = `${file!.id}.${file!.mimeType.split('/')[1]}`;
 

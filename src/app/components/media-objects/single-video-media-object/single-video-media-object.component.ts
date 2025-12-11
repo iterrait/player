@@ -33,7 +33,7 @@ export class SingleVideoMediaObjectComponent extends BaseComponent {
       if (media) {
         this.electronService.ipcRenderer.send('downloadMedia', {
           mediaList: [{
-            minioUrl: media.minioUrl,
+            url: media.minioUrl,
             fileName: media.id,
             type: media.mimeType.split('/')[1],
           }],

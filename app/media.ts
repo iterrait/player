@@ -19,7 +19,7 @@ export default class MediaBuilder {
     if (!mediaList.length) return;
 
     for (const media of mediaList) {
-      this.downloadMedia(media.minioUrl, media.fileName, media.type);
+      this.downloadMedia(media.url, media.fileName, media.type);
     }
   }
 
@@ -27,7 +27,7 @@ export default class MediaBuilder {
     return fs.existsSync(path);
   }
 
-  private downloadMedia(minioUrl, fileName, type) {
+  private downloadMedia(url, fileName, type) {
     const downloadPath = path.join(this.basePath, `${fileName}.${type}`);
 
     if (this.checkExists(downloadPath)) {
@@ -35,7 +35,7 @@ export default class MediaBuilder {
     }
 
     const file = fs.createWriteStream(downloadPath);
-    https.get(minioUrl, (response) => {
+    https.get(url, (response) => {
       response.pipe(file);
       file.on('finish', () => {
         file.close();

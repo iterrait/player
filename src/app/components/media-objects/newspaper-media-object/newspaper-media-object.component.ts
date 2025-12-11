@@ -226,7 +226,7 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
 
             if (file) {
               acc.push({
-                minioUrl: file.minioUrl,
+                url: file.minioUrl,
                 fileName: file.id,
                 type: file.mimeType.split('/')[1],
               });

@@ -35,6 +35,7 @@ export interface NewspaperPost {
   post: {
     id: string;
     content: NewspaperPostContent;
+    postLink?: string;
     author: {
       id: string;
       firstName: string | null;
@@ -45,6 +46,7 @@ export interface NewspaperPost {
     widget: {
       id: string;
       name: string;
+      logo: string | null;
     };
     mediaList: File[] | null;
     createdAt: string;
@@ -81,4 +83,5 @@ export interface NewspaperPostContentBlock {
 export interface AdminWidget {
   id: string;
   name: string;
+  logo?: string;
 }

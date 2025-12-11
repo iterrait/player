@@ -17,8 +17,8 @@ import { BaseComponent } from '@iterra/app-lib/directives';
 import { ItIconModule } from '@iterra/app-lib/it-icons';
 
 import { NewspaperMediaObjectService } from '$components/media-objects/newspaper-media-object/newspaper-media-object.service';
+import { DownloadService } from '$services/download.service';
 import { ElectronService } from '$services/electron.service';
-import { File } from '$types/files.types';
 import { NewspaperMediaObjectParams } from '$types/media-objects.types';
 import { NewspaperPost } from '$types/playlists.types';
 
@@ -46,6 +46,7 @@ export class AnimationBackgroundComponent extends BaseComponent implements After
   public widgetName = input.required<string>();
   public currentPost = input.required<NewspaperPost | null>();
 
+  private downloadService = inject(DownloadService);
   private electronService = inject(ElectronService);
   private newspaperMediaObjectService = inject(NewspaperMediaObjectService);
 
@@ -57,7 +58,7 @@ export class AnimationBackgroundComponent extends BaseComponent implements After
   protected qrWidth = computed(() => (this.params().backgroundWidth ?? 256) - 200);
 
   protected backgroundAnimationLogo = computed(() => {
-    const file = this.params().backgroundAnimationLogoFile;
+    const file = this.currentPost()?.widget?.logo;
 
     if (!file) {
       return null;
@@ -68,10 +69,10 @@ export class AnimationBackgroundComponent extends BaseComponent implements After
 
   protected qrCode = computed(() => {
     const player = this.player();
-    const postId = this.currentPost()?.post.id;
+    const postLink = this.currentPost()?.post.postLink;
 
-    if (player?.project.domain && player?.location.id && this.params().widgetId && postId) {
-      return `https://app.${player?.project.domain}/${player?.location.id}/widget/${this.params().widgetId}/${postId}`;
+    if (player && postLink) {
+      return postLink;
     }
 
     return null;
@@ -88,7 +89,7 @@ export class AnimationBackgroundComponent extends BaseComponent implements After
         this.marqueeFontSize.set(Math.min(params.marqueeHeight ?? 0, params.backgroundWidth ?? 0) * 0.5);
 
         if (localBasePath) {
-          this.downloadBackgroundMedia();
+          this.downloadLogo();
         }
       }
     });
@@ -106,40 +107,36 @@ export class AnimationBackgroundComponent extends BaseComponent implements After
     }
   }
 
-  private async checkMediaById(name: string): Promise<string | boolean> {
-    return await this.electronService.ipcRenderer.invoke('checkLocalMedia', name);
+  private getFile(file: string): Promise<string | null> {
+    return this.checkFile(file) ?? file;
   }
 
-  private checkFile(file: File): Promise<string | null> {
-    const name = `${file!.id}.${file!.mimeType.split('/')[1]}`;
+  private checkFile(link: string): Promise<string | null> {
+    const dataLink = link.split('/');
+    const name = dataLink[dataLink.length - 1];
 
-    return this.checkMediaById(name).then((result) => {
+    return this.downloadService.checkMediaByName(name, link).then((result) => {
       return !!result
         ? `data:image/png;base64,${result}`
-        : null
+        : null;
     });
   }
 
-  private getFile(file: File): Promise<string | null> {
-    return this.checkFile(file) ?? file.minioUrl;
-  }
+  private downloadLogo(): void {
+    const currentPost = this.currentPost();
 
-  private downloadBackgroundMedia(): void {
-    const params = this.params();
-    const files = [];
-
-    if (params.backgroundAnimationLogoFile) {
-      files.push(params.backgroundAnimationLogoFile);
+    if (!currentPost?.post?.widget?.logo) {
+      return;
     }
 
-    const mediaList = files.reduce((acc: Record<string, any>[], curr) => {
-      acc.push({
-        minioUrl: curr.minioUrl,
-        fileName: curr.id,
-        type: curr.mimeType.split('/')[1],
-      });
-      return acc;
-    }, []);
+    const dataLink = currentPost.post.widget.logo.split('/');
+    const file = dataLink[dataLink.length - 1].split('.');
+
+    const mediaList = [{
+      url: currentPost.post.widget.logo,
+      fileName: file[0],
+      type: file[1],
+    }];
 
     this.electronService.ipcRenderer.send('downloadMedia', { mediaList });
   }

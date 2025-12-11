@@ -20,6 +20,7 @@ import { PlayerApiService } from '$services/api/player.api.service';
 import { DayjsService } from '$services/dayjs.service';
 import { ElectronService } from '$services/electron.service';
 import { MediaObject } from '$types/media-objects.types';
+import { Notice } from '$types/notice.types';
 import { Playlist } from '$types/playlists.types';
 
 @Component({
@@ -68,6 +69,13 @@ export class HomeComponent extends BaseComponent {
     this.electronService.ipcRenderer.addListener('playerStart', (
       event,
     ) => (this.playlistStart()));
+
+    this.electronService.ipcRenderer.addListener('showNotice', (
+      event,
+      data: Notice,
+    ) => {
+      this.toastrService[data.status](data.message);
+    });
 
     this.electronService.ipcRenderer.addListener('playerStop', (
       event,

@@ -20,6 +20,10 @@ export default class PlayerStore {
     this.data[key] = val;
     fs.writeFileSync(this.path, JSON.stringify(this.data), 'utf8');
   }
+
+  clearSettings() {
+    fs.writeFileSync(this.path, '', 'utf8');
+  }
 }
 
 function parseDataFile(filePath, defaults) {

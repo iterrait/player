@@ -96,7 +96,16 @@ app.on('ready', async () => {
     };
     menuBuilder.createModalWindow(params);
     linkDescriptionWindow = params.window;
-  })
+  });
+
+  globalShortcut.register('Alt+R', () => {
+    sendScreenshot('working', true);
+  });
+
+  globalShortcut.register('Alt+T', () => {
+    playerStore.clearSettings();
+    reloadApp();
+  });
 });
 
 function checkMainWindow(baseUrl) {
@@ -112,13 +121,14 @@ function checkMainWindow(baseUrl) {
 }
 
 function openLinkDescriptionModal() {
+  const size = playerStore.get('playerId') ? 500 : 700;
   const params = {
     window: linkDescriptionWindow,
     title: 'Информация о плеере',
     icon: './build/icon.ico',
     path: 'link-description',
-    width: 700,
-    height: 700,
+    width: size,
+    height: size,
   };
   menuBuilder.createModalWindow(params);
   linkDescriptionWindow = params.window;
@@ -321,12 +331,12 @@ function dataURItoBlob(dataURI) {
     ia[i] = byteString.charCodeAt(i);
   }
   // write the ArrayBuffer to a blob, and you're done
-  const blob = new Blob([ab], {type: mimeString});
+  const blob = new Blob([ab], { type: mimeString });
 
   return blob;
 }
 
-function sendScreenshot(status) {
+function sendScreenshot(status, isSendNotice = false) {
   if ((process.env['NODE_ENV'] || '').startsWith('dev')) {
     return;
   }
@@ -339,8 +349,8 @@ function sendScreenshot(status) {
   desktopCapturer.getSources({
     types: ['screen'],
     thumbnailSize: {
-      height: 700,
-      width: 700,
+      height: 1920,
+      width: 1800,
     }
   }).then(async sources => {
     const form = new FormData();
@@ -363,6 +373,12 @@ function sendScreenshot(status) {
           },
         }
       );
-    } catch (error) {}
+
+      if (isSendNotice) {
+        mainWindow.webContents.send('showNotice', { status: 'success', message: 'Скриншот отправлен успешно' });
+      }
+    } catch (error) {
+      mainWindow.webContents.send('showNotice', { status: 'error', message: 'Ошибка при отправке скриншота' });
+    }
   });
 }
