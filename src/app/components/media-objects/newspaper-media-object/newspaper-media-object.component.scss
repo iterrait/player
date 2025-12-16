@@ -20,6 +20,7 @@
   .wrapper-post {
     display: flex;
     justify-content: end;
+    height: 100%;
     position: relative;
     margin-top: -22px;
   }
@@ -66,6 +67,7 @@
     z-index: 2;
     text-transform: uppercase;
     letter-spacing: 5px;
+    background: var(--color-marquee);
   }
 
   .marquee-text {
@@ -104,9 +106,5 @@
 
   .marquee-content {
     opacity: 1;
-  }
-
-  .marquee__photo {
-    background: var(--color-marquee);
   }
 }

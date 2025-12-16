@@ -11,25 +11,6 @@
           (load)="onLoadPostImage()"
         />
       </div>
-
-
-      @if (config().hasMarquee) {
-        <div
-          #marqueeContainer
-          class="marquee marquee__photo"
-          [style.height.px]="config().marqueeHeight ?? defaultMarqueeHeight"
-          [style.width.px]="marqueeWidth()"
-        >
-          <div
-            #marqueeTextContainer
-            class="marquee-text"
-            [style.animationDuration.s]="marqueeSpeed"
-            [style.fontSize.px]="marqueeFontSize"
-          >
-            {{marqueeText}}
-          </div>
-        </div>
-      }
     </div>
     <animation-background
       [localBasePath]="localBasePath()"
@@ -38,4 +19,21 @@
       [currentPost]="currentPost()"
     />
   </div>
+
+  @if (config().hasMarquee) {
+    <div
+    #marqueeContainer
+    class="marquee marquee__photo"
+    [style.height.px]="config().marqueeHeight ?? defaultMarqueeHeight"
+  >
+    <div
+      #marqueeTextContainer
+      class="marquee-text"
+      [style.animationDuration.s]="marqueeSpeed"
+      [style.fontSize.px]="marqueeFontSize"
+    >
+      {{marqueeText}}
+    </div>
+  </div>
+  }
 }

@@ -88,9 +88,7 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
     return this.downloadService.getFile(mediaList[0]);
   });
 
-  protected marqueeWidth = signal<number>(0);
-
-  constructor() {``
+  constructor() {
     super();
 
     this.windowHeight = window.innerHeight;
@@ -101,10 +99,7 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
       const playerId = this.playerId();
 
       if (currentMedia && playerId) {
-        const marqueeWidth = this.windowWidth - Number(currentMedia.config['backgroundWidth']);
         const newspaper = this.newspaperBroadcast[currentMedia.id];
-
-        this.marqueeWidth.set(marqueeWidth);
 
         if (!newspaper) {
           this.getNewspaperPosts();

@@ -33,10 +33,11 @@
 
   .background-overlay__qr-wrapper {
     display: flex;
+    flex: 1;
     align-items: center;
     justify-content: center;
-    height: 50%;
     width: 100%;
+    height: 100%;
     padding: var(--gap-x3);
   }
 
@@ -44,8 +45,7 @@
     border-radius: var(--border-radius-x2);
   }
 
-  .background-overlay__qr,
-  .background-overlay__text {
+  .background-overlay__qr {
     animation: element-out 10s infinite forwards;
   }
 
@@ -76,32 +76,6 @@
     line-height: 100%;
   }
 
-  .background-overlay__rubric {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 65px;
-    padding-left: var(--gap-x2);
-    padding-right: var(--gap-x2);
-    color: var(--color-white);
-    background: var(--color-marquee);
-  }
-
-  .background-overlay__rubric img {
-    height: 48px;
-    padding-right: var(--gap-x2);
-    border: none;
-  }
-
-  .background-overlay__rubric-text {
-    position: relative;
-    font-size: 16px;
-    font-weight: 700;
-    text-transform: uppercase;
-    background: #DD3C26;
-  }
-
   .background-overlay__wrapper::before {
     position: absolute;
     left: 0;
@@ -120,18 +94,6 @@
     height: 66px;
     width: calc((100% - 300px) / 2 + 18px);
     opacity: .7;
-  }
-
-  .background-overlay__text {
-    position: absolute;
-    width: 100%;
-    bottom: 120px;
-    left: 50%;
-    transform: translate(-50%, 0);
-    font-size: 40px;
-    font-weight: 700;
-    line-height: 40px;
-    text-align: center;
   }
 
   @keyframes logo {
