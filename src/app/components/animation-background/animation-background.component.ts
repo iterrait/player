@@ -55,7 +55,7 @@ export class AnimationBackgroundComponent extends BaseComponent implements After
   protected fontSize = signal(56);
   protected marqueeFontSize = signal(24);
 
-  protected qrWidth = computed(() => (this.params().backgroundWidth ?? 256) - 200);
+  protected qrWidth = computed(() => (this.params().backgroundWidth ?? 256) - 120);
 
   protected backgroundAnimationLogo = computed(() => {
     const file = this.currentPost()?.widget?.logo;

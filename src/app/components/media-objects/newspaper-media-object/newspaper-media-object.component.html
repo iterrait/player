@@ -1,16 +1,19 @@
-@if (config()) {
+@if (config() && posts()?.length) {
   <canvas #postCanvas></canvas>
 
   <div class="wrapper-post">
     <div class="post-content">
+      <div class="post__image-wrapper">
         <img
           #postImage
           class="post-image"
           [src]="imagePath() | async"
           (load)="onLoadPostImage()"
         />
+      </div>
 
-      @if (config().hasMarquee && isStartOver()) {
+
+      @if (config().hasMarquee) {
         <div
           #marqueeContainer
           class="marquee marquee__photo"

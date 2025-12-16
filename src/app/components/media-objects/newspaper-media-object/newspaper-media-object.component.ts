@@ -10,6 +10,7 @@ import {
   input,
   OnDestroy,
   signal,
+  untracked,
   viewChild
 } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
@@ -39,8 +40,6 @@ import { NewspaperPost } from '$types/playlists.types';
 export class NewspaperMediaObjectComponent extends BaseComponent implements OnDestroy {
   public currentMedia = input<MediaObject | null>(null);
   public playerId = input<string | null>(null);
-  public isStartOver = input(true);
-  public isInit = input(true);
 
   public postCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('postCanvas');
   public postImage = viewChild<ElementRef<HTMLImageElement>>('postImage');
@@ -59,6 +58,7 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
   protected currentPostIndex = this.newspaperMediaObjectService.currentPostIndex;
   protected currentPost = signal<NewspaperPost | null>(null);
   protected postTimeoutId: NodeJS.Timeout | null = null;
+  protected newspaperBroadcast = this.newspaperMediaObjectService.newspaperBroadcast;
 
   protected marqueeFontSize = 0;
   protected defaultMarqueeSpeed = 9;
@@ -97,14 +97,23 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
     this.windowWidth = window.innerWidth;
 
     effect(() => {
-      const marqueeWidth = this.windowWidth - Number(this.currentMedia()?.config['backgroundWidth']);
-      this.marqueeWidth.set(marqueeWidth);
+      const currentMedia = this.currentMedia();
+      const playerId = this.playerId();
 
-      if (this.currentMedia()) {
-        if (this.playerId() && this.isStartOver()) {
+      if (currentMedia && playerId) {
+        const marqueeWidth = this.windowWidth - Number(currentMedia.config['backgroundWidth']);
+        const newspaper = this.newspaperBroadcast[currentMedia.id];
+
+        this.marqueeWidth.set(marqueeWidth);
+
+        if (!newspaper) {
           this.getNewspaperPosts();
         } else {
-          this.processingPosts();
+          untracked(() => {
+            this.posts.set(this.newspaperBroadcast[this.currentMedia()!.id].posts);
+            this.setCurrentPostIndex();
+            this.processingPosts();
+          });
         }
       }
     });
@@ -140,9 +149,9 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
   }
 
   private processingPosts(): void {
-    if (!this.isInit()) {
-      this.setCurrentPostIndex();
-    }
+    const currentMedia = this.currentMedia();
+    if (!currentMedia) return;
+
     this.clearTimeoutId();
     this.addPost();
 
@@ -165,12 +174,22 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
     this.changeDetectorRef.detectChanges();
 
     let index = this.currentPostIndex() ?? 0;
+    let currentPostIndex = 0;
 
     if (this.posts()?.length) {
-      const nextIndex = (index === this.posts()?.length - 1) ? 0 : ++index;
-      this.currentPostIndex.set(nextIndex);
+      const nextIndex = (index === this.posts()?.length - 1) ? 0 : index + 1;
+      currentPostIndex = nextIndex;
     } else {
-      this.currentPostIndex.set(0);
+      currentPostIndex = 0;
+    }
+    this.currentPostIndex.set(currentPostIndex);
+
+    if (currentPostIndex === 0) {
+      this.getNewspaperPosts();
+    }
+
+    if (this.currentMedia()) {
+      this.newspaperBroadcast[this.currentMedia()!.id].index = currentPostIndex;
     }
   }
 
@@ -219,7 +238,14 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
     if (!playerId || !currentMedia || !this.config()?.widgetId) return;
     this.playerApiService.getNewspaperPosts(playerId, this.config()!.widgetId!)
       .pipe(
-        tap((postsWithPaginator) => this.posts.set(postsWithPaginator.data)),
+        tap((postsWithPaginator) => {
+          this.posts.set(postsWithPaginator.data);
+
+          this.newspaperBroadcast[currentMedia.id] = {
+            posts: postsWithPaginator.data,
+            index: 0,
+          };
+        }),
         tap(() => {
           const mediaList = this.posts().reduce((acc: Record<string, any>[], curr) => {
             const file = curr.post.mediaList?.[0] ?? null;

@@ -53,6 +53,6 @@ export class SingleVideoMediaObjectComponent extends BaseComponent {
   });
 
   protected loadedSingleData(singleVideo: HTMLVideoElement): void {
-    this.videoDurationChanged.emit(singleVideo?.duration * 1000);
+    this.videoDurationChanged.emit(singleVideo?.duration);
   }
 }

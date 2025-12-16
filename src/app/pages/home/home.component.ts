@@ -55,8 +55,6 @@ export class HomeComponent extends BaseComponent {
 
   protected mediaList = computed(() => this.playlist()?.mediaObjects ?? []);
   protected statusInterval = 3600000;
-  protected isStartOver = signal(true);
-  protected isInit = signal(true);
 
   constructor() {
     super();
@@ -162,15 +160,14 @@ export class HomeComponent extends BaseComponent {
   private getNextShowMediaObject(duration: number): void {
     this.mediaObjectTimeoutId = setTimeout(() => {
       let index = this.mediaIndex();
+
       const isLast = (index === this.mediaList().length - 1);
-      const nextIndex = isLast ? 0 : ++index;
+      const nextIndex = isLast ? 0 : index + 1;
 
       if (isLast) {
         this.updateConfig();
       }
 
-      this.isStartOver.set(isLast);
-      this.isInit.set(false);
       this.mediaIndex.set(nextIndex);
 
       this.showMediaObject();
