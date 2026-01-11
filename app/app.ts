@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { app, BrowserWindow, desktopCapturer, globalShortcut, ipcMain, session } from 'electron';
+import { app, BrowserWindow, desktopCapturer, globalShortcut, ipcMain,  screen, session } from 'electron';
+import * as fs from 'fs';
 import { join } from 'path';
 import { format } from 'url';
 
@@ -8,8 +9,13 @@ import MenuBuilder from './menu';
 import PlayerStore from './store';
 import MediaBuilder from './media';
 
+import SourcesOptions = Electron.SourcesOptions;
+
 const { autoUpdater } = require('electron-updater');
 const schedule = require('node-schedule');
+const os = require('os');
+const path = require('path');
+const sharp = require('sharp');
 
 let aboutWindow,
     configWindow,
@@ -19,6 +25,8 @@ let aboutWindow,
     playerStore,
     electronService;
 const gotTheLock = app.requestSingleInstanceLock();
+const SCREENSHOT_DIR = path.join(os.tmpdir(), 'electron-screenshots');
+const LOKI_URL = 'https://loki.iterra.world/loki/api/v1/push';
 
 const ALLOWED_DOMAINS = {
   'default-src': `'self' 'unsafe-inline'`,
@@ -98,8 +106,12 @@ app.on('ready', async () => {
     linkDescriptionWindow = params.window;
   });
 
+  globalShortcut.register('Alt+B', () => {
+    menuBuilder.setupDevelopmentEnvironment();
+  });
+
   globalShortcut.register('Alt+R', () => {
-    sendScreenshot('working', true);
+    takeScreenshotAndUpload('working', true);
   });
 
   globalShortcut.register('Alt+T', () => {
@@ -192,12 +204,13 @@ function initPlayerStore() {
   });
 
   ipcMain.addListener('setStatus', async (event, status) => {
-    sendScreenshot(status);
+    await takeScreenshotAndUpload(status);
   });
 }
 
 function setPlayerStoreData(player): void {
   playerStore.set('playerId', player.id);
+  playerStore.set('playerName', player.name);
   playerStore.set('startTime', player.startTime);
   playerStore.set('endTime', player.endTime);
   playerStore.set('screenResolution', player.screenResolution);
@@ -235,12 +248,13 @@ function setSchedule() {
   const ruleStart = getScheduleRule(startTime);
   const ruleEnd = getScheduleRule(endTime);
 
+  checkForUpdate();
+
   if (currentTime >= startTime.getTime() && currentTime < endTime.getTime()) {
-    checkForUpdate();
-    setTimeout(() => sendScreenshot('running'), 1000);
+    setTimeout(() => takeScreenshotAndUpload('running'), 1000);
     mainWindow.webContents.send('playerStart');
   } else {
-    sendScreenshot('sleeping');
+    takeScreenshotAndUpload('sleeping').then();
     mainWindow.webContents.send('playerStop');
   }
 
@@ -250,13 +264,13 @@ function setSchedule() {
 
   schedule.scheduleJob(ruleStart, function () {
     checkForUpdate();
-    setTimeout(() => sendScreenshot('running'), 1000);
+    setTimeout(() => takeScreenshotAndUpload('awake'), 1000);
     mainWindow.webContents.send('playerStart');
   });
 
   schedule.scheduleJob(ruleEnd, function () {
     checkForUpdate();
-    sendScreenshot('sleeping');
+    takeScreenshotAndUpload('sleeping').then();
     mainWindow.webContents.send('playerStop');
   });
 }
@@ -265,7 +279,7 @@ function checkForUpdate() {
   autoUpdater.checkForUpdates().catch();
 
   autoUpdater.on('update-downloaded', () => {
-    sendScreenshot('updated');
+    takeScreenshotAndUpload('updated').then();
     autoUpdater.quitAndInstall();
   });
 }
@@ -316,27 +330,59 @@ function createWindow(baseUrl) {
   menuBuilder.buildMenu();
 }
 
-function dataURItoBlob(dataURI) {
-  // convert base64 to raw binary data held in a string
-  // doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this
-  const byteString = atob(dataURI.split(',')[1]);
-  // separate out the mime component
-  const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
-  // write the bytes of the string to an ArrayBuffer
-  const ab = new ArrayBuffer(byteString.length);
-  // create a view into the buffer
-  const ia = new Uint8Array(ab);
-  // set the bytes of the buffer to the correct values
-  for (let i = 0; i < byteString.length; i++) {
-    ia[i] = byteString.charCodeAt(i);
-  }
-  // write the ArrayBuffer to a blob, and you're done
-  const blob = new Blob([ab], { type: mimeString });
+async function sendLogToLoki(logData) {
+  const logEntry = {
+    streams: [{
+      stream: {
+        domain: playerStore.get('domain'),
+        playerId: playerStore.get('playerId'),
+        playerName: playerStore.get('playerName'),
+        environment: (process.env['NODE_ENV'] || '').startsWith('dev') ? 'develop' : 'production',
+        level: logData.level ?? 'info',
+      },
+      values: [
+        [
+          Date.now().toString() + '000000', // наносекунды
+          JSON.stringify(logData.message)
+        ]
+      ]
+    }]
+  };
 
-  return blob;
+  try {
+    const response = await fetch(LOKI_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(logEntry)
+    });
+  } catch (error) {
+    throw error;
+  }
 }
 
-function sendScreenshot(status, isSendNotice = false) {
+// перевод из base64 to blob
+function base64ToBlob(base64, mimeType = '') {
+  const byteCharacters = atob(base64);
+  const byteArrays = [];
+
+  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+    const slice = byteCharacters.slice(offset, offset + 512);
+
+    const byteNumbers = new Array(slice.length);
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+
+  return new Blob(byteArrays, { type: mimeType });
+}
+
+async function takeScreenshotAndUpload(status, isSendNotice = false) {
   if ((process.env['NODE_ENV'] || '').startsWith('dev')) {
     return;
   }
@@ -346,39 +392,142 @@ function sendScreenshot(status, isSendNotice = false) {
 
   if (!domain || !playerId) return;
 
-  desktopCapturer.getSources({
-    types: ['screen'],
-    thumbnailSize: {
-      height: 1920,
-      width: 1800,
+  try {
+    const primaryDisplay = screen.getPrimaryDisplay();
+
+    const options: SourcesOptions = {
+      types: ['screen'],
+      thumbnailSize: primaryDisplay.size
+    };
+
+    fs.mkdirSync(SCREENSHOT_DIR, { recursive: true })
+
+    const sources = await desktopCapturer.getSources(options);
+    const timestamp = Date.now();
+    const tempFilePath = path.join(SCREENSHOT_DIR, `screenshot-${timestamp}.png`);
+    const compressedFilePath = path.join(SCREENSHOT_DIR, `screenshot-${timestamp}-compressed.jpg`);
+
+    // Сохраняем оригинал
+    const screenshot = sources[0];
+    const pngBuffer = screenshot.thumbnail.toPNG();
+
+    // Сохраняем напрямую через sharp
+    if (typeof tempFilePath === "string") {
+      await sharp(pngBuffer)
+        .png()
+        .toFile(tempFilePath);
     }
-  }).then(async sources => {
-    const form = new FormData();
-    const file = sources[0].thumbnail.toDataURL();
 
-    form.append('file', dataURItoBlob(file), 'screen.jpg');
-    form.append('data', JSON.stringify({
-      status,
-      'status_at': new Date(),
-    }));
+    // Сжимаем изображение
+    await compressImage(tempFilePath, compressedFilePath);
 
+    // Отправляем на сервер
+    await sendToServer(compressedFilePath, status, domain, playerId, isSendNotice);
+
+    // Удаляем временные файлы
     try {
-      const response = await axios.post(
-        `https://player.${domain}/v1/statuses/${playerId}/`,
-        form,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${electronService.authToken}`,
-          },
-        }
-      );
-
-      if (isSendNotice) {
-        mainWindow.webContents.send('showNotice', { status: 'success', message: 'Скриншот отправлен успешно' });
-      }
-    } catch (error) {
-      mainWindow.webContents.send('showNotice', { status: 'error', message: 'Ошибка при отправке скриншота' });
+      fs.unlinkSync(tempFilePath);
+      fs.unlinkSync(compressedFilePath);
+    } catch (message) {
+      await sendLogToLoki({
+        message,
+        level: 'error',
+      });
     }
-  });
+  } catch (message) {
+    await sendLogToLoki({
+      message,
+      level: 'error',
+    });
+    throw message;
+  }
+}
+
+// Функция сжатия изображения
+async function compressImage(inputPath, outputPath) {
+  try {
+    await sharp(inputPath)
+      .jpeg({
+        quality: 70, // Качество от 0 до 100
+        progressive: true
+      })
+      .resize(1920, 1080, { // Опционально: изменение размера
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .toFile(outputPath);
+
+    const stats = fs.statSync(outputPath);
+
+    return outputPath;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Функция отправки на сервер
+async function sendToServer(filePath, status, domain, playerId, isSendNotice) {
+  const fileBuffer = fs.readFileSync(filePath);
+  const fileBase64 = fileBuffer.toString('base64');
+
+  const form = new FormData();
+
+  form.append('file', base64ToBlob(fileBase64), 'screen.jpg');
+  form.append('data', JSON.stringify({
+    status,
+    'status_at': new Date(),
+    'time_zone': getIANATimezone(),
+  }));
+
+  try {
+    const response = await axios.post(
+      `https://player.${domain}/v1/statuses/${playerId}/`,
+      form,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${electronService.authToken}`,
+        },
+      }
+    );
+
+    if (isSendNotice) {
+      mainWindow.webContents.send('showNotice', { status: 'success', message: 'Скриншот отправлен успешно' });
+    }
+    await sendLogToLoki({
+      message: 'Статус успешно отправлен',
+      level: 'success',
+    });
+  } catch (message) {
+    mainWindow.webContents.send('showNotice', { status: 'error', message: 'Ошибка при отправке скриншота' });
+    await sendLogToLoki({
+      message,
+      level: 'error',
+    });
+    throw message;
+  }
+}
+
+function getIANATimezone() {
+  try {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return timeZone || guessTimezoneByOffset();
+  } catch {
+    return guessTimezoneByOffset();
+  }
+}
+
+function guessTimezoneByOffset() {
+  const offsetHours = -new Date().getTimezoneOffset() / 60;
+  const offsetMap = {
+    '-12': 'Etc/GMT+12', '-11': 'Pacific/Midway', '-10': 'Pacific/Honolulu',
+    '-9': 'America/Anchorage', '-8': 'America/Los_Angeles', '-7': 'America/Denver',
+    '-6': 'America/Chicago', '-5': 'America/New_York', '-4': 'America/Caracas',
+    '-3': 'America/Sao_Paulo', '-2': 'Atlantic/South_Georgia', '-1': 'Atlantic/Azores',
+    '0': 'UTC', '1': 'Europe/London', '2': 'Europe/Berlin', '3': 'Europe/Moscow',
+    '4': 'Asia/Dubai', '5': 'Asia/Karachi', '6': 'Asia/Dhaka', '7': 'Asia/Bangkok',
+    '8': 'Asia/Shanghai', '9': 'Asia/Tokyo', '10': 'Australia/Sydney',
+    '11': 'Pacific/Guadalcanal', '12': 'Pacific/Auckland', '13': 'Pacific/Apia'
+  };
+  return offsetMap[offsetHours.toString()] || 'UTC';
 }

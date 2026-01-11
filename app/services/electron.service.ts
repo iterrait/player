@@ -25,8 +25,8 @@ export class ElectronService {
     this.init();
   }
 
-  private generateToken(){
-    Promise.all([si.osInfo(), si.baseboard()]).then((values) => {
+  private async generateToken(){
+    return Promise.all([si.osInfo(), si.baseboard()]).then((values) => {
       const data = [values[0].serial, values[1].model];
       const info = data.join(',');
       const token = crypto.createHash('sha1')
@@ -40,10 +40,12 @@ export class ElectronService {
   }
 
   private init() {
-    this.generateToken();
-
     ipcMain.handle('getAuthToken', async () => {
-      return this.token;
+      if (this.token) {
+        return this.token;
+      } else {
+        return this.generateToken().then(() => this.token);
+      }
     });
 
     ipcMain.handle('getVersion', async () => {

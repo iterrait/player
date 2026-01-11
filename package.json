@@ -1,6 +1,6 @@
 {
   "name": "player",
-  "version": "3.0.25",
+  "version": "3.0.50",
   "scripts": {
     "angular:ng": "ng",
     "angular:start": "ng serve --live-reload --host 0.0.0.0 --ssl",
@@ -87,6 +87,7 @@
     "node-schedule": "^2.1.1",
     "postinstall": "^0.11.2",
     "rxjs": "~7.8.1",
+    "sharp": "^0.34.5",
     "systeminformation": "^5.27.11",
     "tslib": "^2.8.1",
     "zone.js": "~0.15.0"
