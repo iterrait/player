@@ -1,16 +1,19 @@
-import {Component, inject, signal} from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
+import { ActivatedRoute } from '@angular/router';
+
+import { BaseComponent } from '@iterra/app-lib/directives';
 
 import { PlayerInfoComponent } from '$components/player-info/player-info.component';
+import { AboutComponent } from '$pages/about/about.component';
 import { CloudConnectionComponent } from '$pages/settings/cloud-connection/cloud-connection.component';
-import {ElectronService} from '$services/electron.service';
-import {ActivatedRoute} from '@angular/router';
-import {BaseComponent} from '@iterra/app-lib/directives';
+import { ElectronService } from '$services/electron.service';
 
 @Component({
   selector: 'settings',
   standalone: true,
   imports: [
+    AboutComponent,
     CloudConnectionComponent,
     MatTabsModule,
     PlayerInfoComponent,
@@ -41,9 +44,5 @@ export class SettingsComponent extends BaseComponent {
 
   protected onTabChange(index: number) {
     this.currentTabIndex.set(index);
-  }
-
-  protected onDeviceLinked(): void {
-    // this.currentTabIndex.set(0);
   }
 }

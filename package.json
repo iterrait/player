@@ -1,6 +1,6 @@
 {
   "name": "player",
-  "version": "3.0.50",
+  "version": "3.0.55",
   "scripts": {
     "angular:ng": "ng",
     "angular:start": "ng serve --live-reload --host 0.0.0.0 --ssl",
@@ -39,9 +39,10 @@
       "output": "dist/player"
     },
     "nsis": {
-      "oneClick": false,
+      "oneClick": true,
       "perMachine": true,
-      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": false,
       "installerIcon": "public/favicon.ico",
       "uninstallerIcon": "public/favicon.ico",
       "installerHeaderIcon": "public/favicon.ico",

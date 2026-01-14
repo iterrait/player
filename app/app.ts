@@ -12,6 +12,11 @@ import MediaBuilder from './media';
 import SourcesOptions = Electron.SourcesOptions;
 
 const { autoUpdater } = require('electron-updater');
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+
+autoUpdater.logger = console;
+
 const schedule = require('node-schedule');
 const os = require('os');
 const path = require('path');
@@ -30,7 +35,7 @@ const LOKI_URL = 'https://loki.iterra.world/loki/api/v1/push';
 
 const ALLOWED_DOMAINS = {
   'default-src': `'self' 'unsafe-inline'`,
-  'connect-src': `'self' https://player.iterra.world https://player.dosaaf.world https://player.iterra.space https://player.dosaaf.website https://video.dsi.ru/ https://video1.dsi.ru:8091/ https://video2.dsi.ru:8091/ https://api.iterra.world/`,
+  'connect-src': `'self' https://player.iterra.world https://player.siladel.ru https://player.iterra.space https://player.siladel.website https://video.dsi.ru/ https://video1.dsi.ru:8091/ https://video2.dsi.ru:8091/ https://api.iterra.world/`,
   'img-src': `'self' https://iterra.world/ https://dev.iterra.world/ https://minio.iterra.world/ data:`,
   'style-src': `'self' 'unsafe-inline' https://fonts.googleapis.com`,
   'font-src': `'self' https://fonts.gstatic.com`,
@@ -227,6 +232,8 @@ function setPlayerStoreData(player): void {
 }
 
 function setSchedule() {
+  checkForUpdate().then();
+
   if (!playerStore.get('playerId') || !playerStore.get('startTime') || !playerStore.get('endTime')) {
     mainWindow.webContents.send('playerInfo');
     return;
@@ -248,34 +255,34 @@ function setSchedule() {
   const ruleStart = getScheduleRule(startTime);
   const ruleEnd = getScheduleRule(endTime);
 
-  checkForUpdate();
-
-  if (currentTime >= startTime.getTime() && currentTime < endTime.getTime()) {
-    setTimeout(() => takeScreenshotAndUpload('running'), 1000);
-    mainWindow.webContents.send('playerStart');
-  } else {
-    takeScreenshotAndUpload('sleeping').then();
-    mainWindow.webContents.send('playerStop');
-  }
+  setTimeout(() => takeScreenshotAndUpload('running'), 2000);
+  mainWindow.webContents.send((currentTime >= startTime.getTime() && currentTime < endTime.getTime())
+    ? 'playerStart'
+    : 'playerStop');
 
   for (const job in schedule.scheduledJobs) {
     schedule.cancelJob(job);
   }
 
   schedule.scheduleJob(ruleStart, function () {
-    checkForUpdate();
-    setTimeout(() => takeScreenshotAndUpload('awake'), 1000);
+    checkForUpdate().then();
+    setTimeout(() => takeScreenshotAndUpload('running'), 2000);
     mainWindow.webContents.send('playerStart');
   });
 
   schedule.scheduleJob(ruleEnd, function () {
-    checkForUpdate();
-    takeScreenshotAndUpload('sleeping').then();
+    checkForUpdate().then();
+    setTimeout(() => takeScreenshotAndUpload('sleeping'), 2000);
     mainWindow.webContents.send('playerStop');
   });
 }
 
-function checkForUpdate() {
+async function checkForUpdate() {
+  await sendLogToLoki({
+    message: 'Началась проверка обновления',
+    level: 'checkForUpdate',
+  });
+
   autoUpdater.checkForUpdates().catch();
 
   autoUpdater.on('update-downloaded', () => {
