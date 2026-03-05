@@ -50,11 +50,13 @@ export class HomeComponent extends BaseComponent {
   protected mediaIndex = signal<number>(0);
   protected mediaObjectTimeoutId: NodeJS.Timeout | null = null;
   protected statusTimeoutId: NodeJS.Timeout | null = null;
+  protected updateTimeoutId: NodeJS.Timeout | null = null;
   protected player = this.newspaperMediaObjectService.player;
   protected playlist = signal<Playlist | null>(null);
 
   protected mediaList = computed(() => this.playlist()?.mediaObjects ?? []);
-  protected statusInterval = 3600000;
+  protected STATUS_INTERVAL = 3600000; // 1 час
+  protected DEFAULT_UPDATE_INTERVAL = 600000; // 10 мин
 
   constructor() {
     super();
@@ -81,7 +83,7 @@ export class HomeComponent extends BaseComponent {
 
     this.statusTimeoutId = setInterval(() => {
       this.electronService.ipcRenderer.send('setStatus', 'working');
-    }, this.statusInterval);
+    }, this.STATUS_INTERVAL);
   }
 
   private getPlayerInfo(playerId: string): void {
@@ -164,8 +166,12 @@ export class HomeComponent extends BaseComponent {
       const isLast = (index === this.mediaList().length - 1);
       const nextIndex = isLast ? 0 : index + 1;
 
-      if (isLast) {
+      if (isLast && this.mediaList().length !== 1) {
         this.updateConfig();
+      }
+
+      if (this.mediaList().length === 1) {
+        this.updateTimeoutId = setInterval(() => this.updateConfig(), this.DEFAULT_UPDATE_INTERVAL);
       }
 
       this.mediaIndex.set(nextIndex);
@@ -188,6 +194,10 @@ export class HomeComponent extends BaseComponent {
   private clearTimeouts(): void {
     if (this.mediaObjectTimeoutId) {
       clearTimeout(this.mediaObjectTimeoutId);
+    }
+
+    if (this.updateTimeoutId) {
+      clearTimeout(this.updateTimeoutId);
     }
   }
 }

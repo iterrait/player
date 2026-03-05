@@ -31,7 +31,9 @@ let aboutWindow,
     electronService;
 const gotTheLock = app.requestSingleInstanceLock();
 const SCREENSHOT_DIR = path.join(os.tmpdir(), 'electron-screenshots');
-const LOKI_URL = 'https://loki.iterra.world/loki/api/v1/push';
+
+const extension = !(process.env['NODE_ENV']||'').startsWith('dev') ? 'world' : 'space';
+const LOKI_URL = `https://player.iterra.${extension}/v1/logging`;
 
 const ALLOWED_DOMAINS = {
   'default-src': `'self' 'unsafe-inline'`,
@@ -280,7 +282,7 @@ function setSchedule() {
 async function checkForUpdate() {
   await sendLogToLoki({
     message: 'Началась проверка обновления',
-    level: 'checkForUpdate',
+    level: 'info',
   });
 
   autoUpdater.checkForUpdates().catch();
@@ -339,34 +341,28 @@ function createWindow(baseUrl) {
 
 async function sendLogToLoki(logData) {
   const logEntry = {
-    streams: [{
-      stream: {
-        domain: playerStore.get('domain'),
-        playerId: playerStore.get('playerId'),
-        playerName: playerStore.get('playerName'),
-        environment: (process.env['NODE_ENV'] || '').startsWith('dev') ? 'develop' : 'production',
-        level: logData.level ?? 'info',
-      },
-      values: [
-        [
-          Date.now().toString() + '000000', // наносекунды
-          JSON.stringify(logData.message)
-        ]
-      ]
-    }]
+    level: logData.level?.toUpperCase() ?? 'INFO',
+    application: 'player',
+    message: logData.message
+      ?`${logData.message}, name: ${playerStore.get('playerName')}`
+      : playerStore.get('playerName'),
+    environment: (process.env['NODE_ENV'] || '').startsWith('dev') ? 'develop' : 'production',
+    metadata: {
+      level: logData.level?.toUpperCase() ?? 'INFO',
+    }
   };
 
   try {
-    const response = await fetch(LOKI_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(logEntry)
-    });
-  } catch (error) {
-    throw error;
-  }
+    const response = await axios.post(
+      `${LOKI_URL}/${playerStore.get('playerId')}/`,
+      logEntry,
+      {
+        headers: {
+          'Authorization': `Bearer ${electronService.authToken}`,
+        },
+      });
+
+  } catch (error) { throw error; }
 }
 
 // перевод из base64 to blob
@@ -503,7 +499,7 @@ async function sendToServer(filePath, status, domain, playerId, isSendNotice) {
     }
     await sendLogToLoki({
       message: 'Статус успешно отправлен',
-      level: 'success',
+      level: 'info',
     });
   } catch (message) {
     mainWindow.webContents.send('showNotice', { status: 'error', message: 'Ошибка при отправке скриншота' });

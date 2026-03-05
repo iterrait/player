@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, isDevMode, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiBaseService } from '@iterra/app-lib/services';
@@ -6,7 +6,7 @@ import { ApiBaseService } from '@iterra/app-lib/services';
 import { AdminService } from '$services/admin.service';
 import { FilesWithPaginator } from '$types/files.types';
 import { Player, PlayerStatus } from '$types/player.types';
-import { NewspaperPostWithPaginator, Playlist } from '$types/playlists.types';
+import { NewspaperPostParams, NewspaperPostWithPaginator, Playlist } from '$types/playlists.types';
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +18,7 @@ export class PlayerApiService extends ApiBaseService {
   protected domainApi = computed(() => `https://player.${this.adminService.domain()}/v1`);
 
   public getPLayerInfo(playerId: string): Observable<Player> {
-    this.API = signal(`https://player.iterra.world/v1`);
+    this.API = signal(`https://player.iterra.${isDevMode() ? 'space' : 'world'}/v1`);
     return this.getEntity<Player>(`players/${playerId}`);
   }
 
@@ -27,9 +27,13 @@ export class PlayerApiService extends ApiBaseService {
     return this.getEntity<Playlist>(`playlists/${playerId}`, { isShow: true });
   }
 
-  public getNewspaperPosts(playerId: string, widgetId: string): Observable<NewspaperPostWithPaginator> {
+  public getNewspaperPosts(
+    playerId: string,
+    widgetId: string,
+    params: NewspaperPostParams,
+  ): Observable<NewspaperPostWithPaginator> {
     this.API.set(this.domainApi());
-    return this.getEntity<NewspaperPostWithPaginator>(`newspaper/${playerId}/posts/${widgetId}`);
+    return this.getEntity<NewspaperPostWithPaginator>(`newspaper/${playerId}/posts/${widgetId}`, params);
   }
 
   public linkPLayer(code: string, token: string): Observable<Player> {

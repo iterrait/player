@@ -1,6 +1,15 @@
 import { File } from '$types/files.types';
 import { MediaObject } from '$types/media-objects.types';
 
+export type NewspaperPostStatus = 'published'
+  | 'draft'
+  | 'forModeration'
+  | 'rejected'
+  | 'unpublishedByAuthor'
+  | 'unpublishedByModerator'
+  | 'deleted'
+  | 'repost';
+
 export interface Playlist {
   id: string;
   name: string;
@@ -55,15 +64,6 @@ export interface NewspaperPost {
   widget: AdminWidget;
 }
 
-export type NewspaperPostStatus = 'published'
-  | 'draft'
-  | 'forModeration'
-  | 'rejected'
-  | 'unpublishedByAuthor'
-  | 'unpublishedByModerator'
-  | 'deleted'
-  | 'repost';
-
 export interface NewspaperPostContent {
   id: string;
   name: string;
@@ -84,4 +84,8 @@ export interface AdminWidget {
   id: string;
   name: string;
   logo?: string;
+}
+
+export interface NewspaperPostParams {
+  size: number;
 }

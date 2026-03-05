@@ -99,15 +99,14 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
       const playerId = this.playerId();
 
       if (currentMedia && playerId) {
-        const newspaper = this.newspaperBroadcast[currentMedia.id];
+        const currentBroadcast = this.newspaperBroadcast[currentMedia.id];
 
-        if (!newspaper) {
+        if (!currentBroadcast || !currentBroadcast?.posts.length) {
           this.getNewspaperPosts();
         } else {
           untracked(() => {
-            this.posts.set(this.newspaperBroadcast[this.currentMedia()!.id].posts);
-            this.setCurrentPostIndex();
-            this.processingPosts();
+            this.posts.set(currentBroadcast.posts);
+            this.setCurrentPostIndex(currentBroadcast.index);
           });
         }
       }
@@ -157,7 +156,7 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
   }
 
   private addPost(): void {
-    this.currentPost.set(this.posts()?.[this.currentPostIndex()] ?? null);
+    this.currentPost.set(this.posts()?.[this.currentPostIndex()]);
     this.changeDetectorRef.detectChanges();
 
     if (this.config().hasMarquee) {
@@ -165,10 +164,10 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
     }
   }
 
-  private setCurrentPostIndex(): void {
+  private setCurrentPostIndex(startValue?: number): void {
     this.changeDetectorRef.detectChanges();
 
-    let index = this.currentPostIndex() ?? 0;
+    let index = startValue ?? this.currentPostIndex() ?? 0;
     let currentPostIndex = 0;
 
     if (this.posts()?.length) {
@@ -177,15 +176,19 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
     } else {
       currentPostIndex = 0;
     }
-    this.currentPostIndex.set(currentPostIndex);
 
-    if (currentPostIndex === 0) {
+    if (index === this.posts()?.length - 1) {
       this.getNewspaperPosts();
+      return;
     }
+
+    this.currentPostIndex.set(currentPostIndex);
 
     if (this.currentMedia()) {
       this.newspaperBroadcast[this.currentMedia()!.id].index = currentPostIndex;
     }
+
+    this.processingPosts();
   }
 
   private addMarquee():void{
@@ -229,11 +232,14 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
   private getNewspaperPosts(): void {
     const currentMedia = this.currentMedia();
     const playerId = this.playerId();
+    const config = this.config();
 
-    if (!playerId || !currentMedia || !this.config()?.widgetId) return;
-    this.playerApiService.getNewspaperPosts(playerId, this.config()!.widgetId!)
+    if (!playerId || !currentMedia || !config?.widgetId) return;
+
+    this.playerApiService.getNewspaperPosts(playerId, config!.widgetId!, { size: Number(config.limit) ?? 10 })
       .pipe(
         tap((postsWithPaginator) => {
+          this.currentPostIndex.set(0);
           this.posts.set(postsWithPaginator.data);
 
           this.newspaperBroadcast[currentMedia.id] = {
@@ -263,6 +269,8 @@ export class NewspaperMediaObjectComponent extends BaseComponent implements OnDe
       )
       .subscribe({
         error: (error: ErrorEvent) => {
+          this.currentPostIndex.set(0);
+          this.newspaperBroadcast[currentMedia.id].index = 0;
           this.toastrService.error(error.error.detail ?? 'Ошибка получения постов для стенгазеты');
         },
       });
