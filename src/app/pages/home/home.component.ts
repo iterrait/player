@@ -171,6 +171,10 @@ export class HomeComponent extends BaseComponent {
       }
 
       if (this.mediaList().length === 1) {
+        if (this.updateTimeoutId) {
+          clearTimeout(this.updateTimeoutId);
+        }
+
         this.updateTimeoutId = setInterval(() => this.updateConfig(), this.DEFAULT_UPDATE_INTERVAL);
       }
 
